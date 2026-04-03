@@ -1,1 +1,93 @@
+name: University Assistant CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ── Job 1: Backend Tests + Lint ──
+  backend-test:
+    name: Backend Tests & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: backend
+
+      - name: Run ESLint
+        run: npm run lint || true
+        working-directory: backend
+
+      - name: Run automated tests
+        working-directory: backend
+        env:
+          JWT_SECRET: test_jwt_secret_university_ci_2024
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4o-mini
+          OPENAI_EMBEDDING_MODEL: text-embedding-3-small
+          CHROMA_HOST: localhost
+          CHROMA_PORT: 8000
+          NODE_ENV: test
+        run: npm test -- --coverageReporters=text --coverageReporters=lcov
+
+      - name: Build check
+        run: npm run build
+        working-directory: backend
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage
+          path: backend/coverage/
+
+  # ── Job 2: Frontend Build ──
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: frontend
+
+      - name: Build React app
+        working-directory: frontend
+        env:
+          REACT_APP_API_URL: http://localhost:5000
+          CI: false
+        run: npm run build
+
+  # ── Job 3: Security Audit ──
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: backend
+
+      - name: npm audit
+        run: npm audit --audit-level=high || true
+        working-directory: backend
 
