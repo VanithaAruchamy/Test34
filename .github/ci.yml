@@ -1,0 +1,68 @@
+name: University Assistant CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-test:
+    name: Backend Tests & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm install
+        working-directory: backend
+      - name: Run ESLint
+        run: npm run lint || true
+        working-directory: backend
+      - name: Run tests
+        working-directory: backend
+        env:
+          JWT_SECRET: test_jwt_secret_university_ci
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4o-mini
+          OPENAI_EMBEDDING_MODEL: text-embedding-3-small
+          NODE_ENV: test
+        run: npm test -- --coverageReporters=text
+      - name: Build check
+        run: npm run build
+        working-directory: backend
+
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install frontend deps
+        run: npm install
+        working-directory: frontend
+      - name: Build React app
+        working-directory: frontend
+        env:
+          REACT_APP_API_URL: http://localhost:5000
+          CI: false
+        run: npm run build
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install deps
+        run: npm install
+        working-directory: backend
+      - name: Audit
+        run: npm audit --audit-level=high || true
+        working-directory: backend

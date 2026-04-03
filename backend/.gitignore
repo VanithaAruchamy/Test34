@@ -1,0 +1,12 @@
+node_modules/
+*/node_modules/
+backend/.env
+.env
+frontend/.env
+frontend/build/
+*.db
+coverage/
+backend/coverage/
+*.log
+.DS_Store
+chroma-data/

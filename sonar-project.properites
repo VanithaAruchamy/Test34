@@ -1,0 +1,29 @@
+# sonar-project.properties
+# Run locally: sonar-scanner -Dsonar.token=YOUR_TOKEN
+
+sonar.projectKey=university-assistant
+sonar.projectName=University AI Assistant
+sonar.projectVersion=2.0.0
+
+# Source directories
+sonar.sources=backend/routes,backend/services,backend/middleware,backend/utils,backend/db
+
+# Test directories
+sonar.tests=backend/tests
+
+# Language
+sonar.language=js
+sonar.sourceEncoding=UTF-8
+
+# Coverage (generate with: cd backend && npm test)
+sonar.javascript.lcov.reportPaths=backend/coverage/lcov.info
+
+# Exclusions
+sonar.exclusions=**/node_modules/**,**/coverage/**,frontend/**,backend/data/**
+
+# Test inclusions
+sonar.test.inclusions=backend/tests/**/*.test.js
+
+# SonarQube server (local)
+sonar.host.url=http://localhost:9000
+sonar.login=squ_888c26828fb4438007d2d5f981e226d1779577a6
